@@ -2,7 +2,7 @@
 
 This project demonstrates a modern data engineering workflow using Azure services, Snowflake, and a Streamlit dashboard.
 
-It simulates a full pipeline from raw CSVs to business-ready analytics — a practical showcase of my hands-on work with cloud-based data tools.
+It simulates a full pipeline from raw CSV to business-ready analytics — a practical showcase of my hands-on work with cloud-based data tools.
 
 ---
 
@@ -18,7 +18,7 @@ It simulates a full pipeline from raw CSVs to business-ready analytics — a pra
 
 ## 🔄 Pipeline Flow
 
-1. Upload raw CSVs (e.g. orders, customers) to Azure Blob Storage
+1. Upload [raw CSV of sales data](https://www.kaggle.com/datasets/shantanugarg274/sales-dataset) to Azure Blob Storage
 2. Use Azure Data Factory to:
    - Extract the data
    - Apply basic cleaning/transformation
@@ -40,13 +40,13 @@ It simulates a full pipeline from raw CSVs to business-ready analytics — a pra
 
 **Filters:**
 - Date range
-- Region / country
-- Customer segment
+- State
+- Product Category
 
 **Charts:**
 - 📈 Revenue trend over time (line chart)
 - 🧑‍🤝‍🧑 Top 5 customers by spend (bar chart)
-- 🌍 Revenue by country (choropleth map)
+- 🌍 Revenue by state (choropleth map)
 
 **Metrics:**
 - Total revenue
