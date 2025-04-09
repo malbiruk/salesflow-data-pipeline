@@ -1,0 +1,32 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table region {
+  region varchar [pk]
+}
+
+Table country {
+  country varchar [pk]
+  region varchar [ref: > region.region, not null]
+}
+
+Table product {
+  item_type varchar [pk]
+  unit_cost float
+  unit_price float
+}
+
+Table order_priority {
+  order_priority varchar [pk]
+}
+
+Table order {
+  id integer
+  country varchar [ref: > country.country, not null]
+  is_online bool
+  order_priority varchar [ref: > order_priority.order_priority, not null]
+  product_id varchar [ref: > product.item_type, not null]
+  units_sold integer
+  order_date date
+  ship_date date
+}
