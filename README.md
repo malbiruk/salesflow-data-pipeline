@@ -18,7 +18,7 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 
 ## 🔄 Pipeline Flow
 
-1. Upload [raw CSV of sales data](https://www.kaggle.com/datasets/shantanugarg274/sales-dataset) to Azure Blob Storage
+1. Upload [raw CSV of sales data](https://excelbianalytics.com/wp/downloads-18-sample-csv-files-data-sets-for-testing-sales/) to Azure Blob Storage
 2. Use Azure Data Factory to:
    - Extract the data
    - Apply basic cleaning/transformation
@@ -28,11 +28,9 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 
 ---
 
-## 📐 Schema (WIP)
+## 📐 Schema
 
-- **customers** (customer_id, name, country, segment, created_at)
-- **orders** (order_id, customer_id, order_date, amount)
-- **products** (product_id, category, price)
+![ERD schema](db/ERD.png)
 
 ---
 
@@ -58,7 +56,7 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 ## 🚧 Status
 
 - [x] Repo initialized
-- [ ] Sample data upload
+- [x] Sample data upload
 - [ ] ADF pipeline setup
 - [ ] Snowflake schema & load
 - [ ] Dashboard MVP
@@ -68,3 +66,7 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 ## ✨ Why I’m Building This
 
 I’m transitioning from a bioinformatics background into cloud data engineering. This project helps me deepen my skills in data pipelines and cloud analytics — while showcasing tools used in production-level DE workflows.
+
+--
+
+## How to use?
