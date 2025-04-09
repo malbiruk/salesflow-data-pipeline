@@ -13,7 +13,7 @@ CREATE TABLE product (
 
 CREATE TABLE order_priority (order_priority VARCHAR(255) PRIMARY KEY);
 
-CREATE TABLE orders (
+CREATE TABLE "order" (
     id INTEGER,
     country VARCHAR(255) NOT NULL,
     is_online BOOLEAN,
@@ -26,8 +26,8 @@ CREATE TABLE orders (
 
 ALTER TABLE country ADD FOREIGN KEY (region) REFERENCES region (region);
 
-ALTER TABLE orders ADD FOREIGN KEY (country) REFERENCES country (country);
+ALTER TABLE "order" ADD FOREIGN KEY (country) REFERENCES country (country);
 
-ALTER TABLE orders ADD FOREIGN KEY (order_priority) REFERENCES order_priority (order_priority);
+ALTER TABLE "order" ADD FOREIGN KEY (order_priority) REFERENCES order_priority (order_priority);
 
-ALTER TABLE orders ADD FOREIGN KEY (product_id) REFERENCES product (item_type);
+ALTER TABLE "order" ADD FOREIGN KEY (product_id) REFERENCES product (item_type);
