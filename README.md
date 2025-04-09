@@ -57,8 +57,8 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 
 - [x] Repo initialized
 - [x] Sample data upload
+- [x] Snowflake schema
 - [ ] ADF pipeline setup
-- [ ] Snowflake schema & load
 - [ ] Dashboard MVP
 
 ---
@@ -66,7 +66,3 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 ## ✨ Why I’m Building This
 
 I’m transitioning from a bioinformatics background into cloud data engineering. This project helps me deepen my skills in data pipelines and cloud analytics — while showcasing tools used in production-level DE workflows.
-
---
-
-## How to use?
