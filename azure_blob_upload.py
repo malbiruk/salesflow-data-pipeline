@@ -7,7 +7,6 @@ https://excelbianalytics.com/wp/wp-content/uploads/2017/07/10000-Sales-Records.z
 4. uploads the .csv in blob into the created container
 """
 
-import logging
 import os
 import sys
 import zipfile
@@ -19,7 +18,6 @@ from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.storage import StorageManagementClient
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
-from rich.logging import RichHandler
 
 from logger import get_logger
 

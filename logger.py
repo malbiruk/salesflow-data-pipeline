@@ -14,9 +14,4 @@ def get_logger(log_level="INFO"):
             handlers=[RichHandler(rich_tracebacks=True)],
         )
 
-    import inspect
-
-    caller_frame = inspect.stack()[1]
-    module_name = caller_frame.frame.f_globals["__name__"]
-
-    return logging.getLogger(module_name)
+    return logging.getLogger(__name__)

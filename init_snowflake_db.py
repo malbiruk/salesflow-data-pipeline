@@ -1,10 +1,8 @@
-import logging
 import os
 from pathlib import Path
 
 import snowflake.connector
 from dotenv import load_dotenv
-from rich.logging import RichHandler
 
 from logger import get_logger
 
