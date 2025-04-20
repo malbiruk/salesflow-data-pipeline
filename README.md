@@ -11,6 +11,7 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 - **Azure Blob Storage** — stores raw CSV data
 - **Azure Data Factory** — orchestrates ETL workflows
 - **Snowflake** — cloud data warehouse for structured data
+- **dbt** — creates final tables with metrics suitable for analysis
 - **Streamlit + Plotly** — interactive dashboard for visual insights
 - **Python** — data transformation, scripting, dashboard backend
 
@@ -30,7 +31,8 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 
 ## 📐 Schema
 
-[![ERD schema](db/ERD.png)](https://liambx.com/erd/p/github.com/malbiruk/salesflow-data-pipeline/blob/main/db/schema.sql?showMode=ALL_FIELDS)
+**public**
+[![ERD schema](db_schema/ERD.png)](https://liambx.com/erd/p/github.com/malbiruk/salesflow-data-pipeline/blob/main/db/schema.sql?showMode=ALL_FIELDS)
 
 ---
 
