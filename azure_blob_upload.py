@@ -30,7 +30,7 @@ FILE_NAME = "10000 Sales Records.csv"
 BLOB_NAME = "10000 Sales Records.csv"
 
 
-def check_env_vars():
+def check_env_vars() -> None:
     """Check if all required environment variables are set."""
     required_vars = [
         "AZURE_APP_ID",
@@ -49,7 +49,7 @@ def check_env_vars():
         sys.exit(1)
 
 
-def download_dataset():
+def download_dataset() -> None:
     """Download and extract the sales dataset."""
     if Path(FILE_NAME).exists():
         logger.info("Dataset was already downloaded.")
@@ -67,6 +67,7 @@ def download_dataset():
         "https://excelbianalytics.com/wp/wp-content/uploads/2017/07/10000-Sales-Records.zip",
         headers=headers,
         stream=True,
+        timeout=30,
     )
 
     response.raise_for_status()
@@ -84,7 +85,7 @@ def download_dataset():
     logger.info("Dataset downloaded and extracted.")
 
 
-def get_azure_credential():
+def get_azure_credential() -> ClientSecretCredential:
     """Get Azure credential using service principal."""
     logger.info("Authenticating with Azure...")
     return ClientSecretCredential(
@@ -94,7 +95,7 @@ def get_azure_credential():
     )
 
 
-def create_azure_resources(credential):
+def create_azure_resources(credential: ClientSecretCredential) -> BlobServiceClient:
     """Create necessary Azure resources if they don't exist."""
     logger.info("Creating Azure resources...")
 
@@ -103,18 +104,12 @@ def create_azure_resources(credential):
     storage_account = os.getenv("AZURE_STORAGE_ACCOUNT")
     container_name = os.getenv("AZURE_CONTAINER_NAME")
 
-    # Create resource client
     resource_client = ResourceManagementClient(credential, subscription_id)
-
-    # Create resource group if it doesn't exist
     if not any(rg.name == resource_group for rg in resource_client.resource_groups.list()):
         logger.info("Creating resource group %s...", resource_group)
         resource_client.resource_groups.create_or_update(resource_group, {"location": "uaenorth"})
 
-    # Create storage client
     storage_client = StorageManagementClient(credential, subscription_id)
-
-    # Create storage account if it doesn't exist
     if not any(
         sa.name == storage_account
         for sa in storage_client.storage_accounts.list_by_resource_group(resource_group)
@@ -126,17 +121,12 @@ def create_azure_resources(credential):
             {"location": "uaenorth", "kind": "StorageV2", "sku": {"name": "Standard_LRS"}},
         ).result()
 
-    # Get storage account keys
     keys = storage_client.storage_accounts.list_keys(resource_group, storage_account)
     storage_key = keys.keys[0].value
-
-    # Create a blob service client
     blob_service_client = BlobServiceClient(
         account_url=f"https://{storage_account}.blob.core.windows.net",
         credential=storage_key,
     )
-
-    # Create container if it doesn't exist
     if not any(
         container.name == container_name for container in blob_service_client.list_containers()
     ):
@@ -146,7 +136,7 @@ def create_azure_resources(credential):
     return blob_service_client
 
 
-def upload_to_blob(blob_service_client):
+def upload_to_blob(blob_service_client: BlobServiceClient) -> None:
     """Upload the dataset to Azure Blob Storage."""
     logger.info("Uploading dataset to Azure Blob...")
 
@@ -165,7 +155,7 @@ def upload_to_blob(blob_service_client):
     )
 
 
-def main():
+def main() -> None:
     """Main function to orchestrate the workflow."""
     check_env_vars()
     download_dataset()
