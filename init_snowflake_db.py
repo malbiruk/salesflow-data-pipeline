@@ -1,8 +1,14 @@
+import logging
 import os
 from pathlib import Path
 
 import snowflake.connector
 from dotenv import load_dotenv
+from rich.logging import RichHandler
+
+from logger import get_logger
+
+logger = get_logger()
 
 load_dotenv()
 
@@ -19,7 +25,7 @@ def main():
         schema=os.getenv("SNOWFLAKE_SCHEMA"),
     )
 
-    with Path("db/schema.sql").open() as sql_file:
+    with Path("db_schema/schema.sql").open() as sql_file:
         sql_script = sql_file.read()
 
     cursor = conn.cursor()
@@ -28,8 +34,11 @@ def main():
 
     statements = [stmt.strip() for stmt in sql_script.split(";") if stmt.strip()]
     for stmt in statements:
-        print(f"Running:\n{stmt}\n---")
-        cursor.execute(stmt)
+        logger.info("Running:\n%s\n---", stmt)
+        try:
+            cursor.execute(stmt)
+        except snowflake.connector.errors.ProgrammingError as e:
+            logger.error("Error executing SQL statement: %s", e)
 
     cursor.close()
     conn.close()
