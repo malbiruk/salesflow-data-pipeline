@@ -43,9 +43,6 @@ dependencies = [
 
 [dependency-groups]
 dev = ["black>=25.1.0", "pytest>=8.3.5", "ruff>=0.11.5"]
-interactive = [
-    "ipykernel>=6.29.5", # For interactive code inspection during development
-]
 
 [tool.ruff]
 target-version = "py312"
@@ -55,17 +52,11 @@ indent-width = 4
 [tool.ruff.lint]
 ignore = [
     "D",       # pydocstyle docstring rules
-    "E501",    # line too long
     "B905",    # `zip()` without an explicit `strict=` parameter
     "PLR0913", # Too many arguments to function call
-    "C408",    # Unnecessary `dict` call (rewrite as a literal)
-    "PD901",   # Avoid using the generic variable name df for DataFrames
-    "NPY002",  # Replace legacy np.random.{method_name} call with np.random.Generator
     "TRY003",  # Avoid specifying long messages outside the exception class
-    "EXE001",  # Shebang is present but file is not executable
     "EM101",   # Exception must not use a string literal, assign to variable first
     "EM102",   # Exception must not use an f-string literal, assign to variable first
-    "NPY201",  # np.{existing} will be removed in NumPy 2.0. {migration_guide}
     "BLE001",  # Do not catch blind exception: `Exception`
 ]
 select = ["ALL"]
@@ -76,5 +67,11 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"] # Allow assertions in tests
+
 [project.scripts]
 salesflow = "salesflow_data_pipeline.main:main"
+salesflow-upload = "salesflow_data_pipeline.scripts.azure_blob_upload:main"
+salesflow-init-db = "salesflow_data_pipeline.scripts.init_snowflake_db:main"
+salesflow-create-pipeline = "salesflow_data_pipeline.scripts.adf_pipeline_creator:main"

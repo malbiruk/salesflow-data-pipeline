@@ -3,7 +3,8 @@ This script does the following:
 1. downloads the dataset from
 https://excelbianalytics.com/wp/wp-content/uploads/2017/07/10000-Sales-Records.zip
 2. extracts .csv and removes the .zip file
-3. using Azure Servie Principal automatically creates resource group, storage account, and container inside it
+3. using Azure Servie Principal automatically creates resource group, storage account,
+and container inside it
 4. uploads the .csv in blob into the created container
 """
 
@@ -18,7 +19,6 @@ from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.storage import StorageManagementClient
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
-
 from logger import get_logger
 
 logger = get_logger()
@@ -57,8 +57,10 @@ def download_dataset() -> None:
 
     logger.info("Downloading dataset...")
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/webp,image/apng,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
     }

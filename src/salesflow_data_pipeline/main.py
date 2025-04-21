@@ -5,7 +5,7 @@ from logger import get_logger
 logger = get_logger()
 
 
-def main():
+def main() -> None:
     """Main orchestration function for the data pipeline."""
 
     azure_blob_upload.main()
