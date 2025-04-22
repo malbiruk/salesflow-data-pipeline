@@ -1,19 +1,19 @@
-CREATE TABLE region (region VARCHAR(255) PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS region (region VARCHAR(255) PRIMARY KEY);
 
-CREATE TABLE country (
+CREATE TABLE IF NOT EXISTS country (
     country VARCHAR(255) PRIMARY KEY,
     region VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE product (
+CREATE TABLE IF NOT EXISTS product (
     item_type VARCHAR(255) PRIMARY KEY,
     unit_cost FLOAT,
     unit_price FLOAT
 );
 
-CREATE TABLE order_priority (order_priority VARCHAR(255) PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS order_priority (order_priority VARCHAR(255) PRIMARY KEY);
 
-CREATE TABLE "order" (
+CREATE TABLE IF NOT EXISTS "order" (
     id INTEGER,
     country VARCHAR(255) NOT NULL,
     is_online BOOLEAN,
