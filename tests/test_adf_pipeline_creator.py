@@ -1,17 +1,17 @@
 # tests/test_adf_pipeline_creator.py
 
-import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.datafactory.models import Factory
 
 from scripts.adf_pipeline_creator import (
-    create_data_factory_if_not_exists,
-    create_blob_linked_service,
-    create_snowflake_linked_service,
-    create_datasets,
     create_and_run_pipeline,
+    create_blob_linked_service,
+    create_data_factory_if_not_exists,
+    create_datasets,
+    create_snowflake_linked_service,
     main,
 )
 
@@ -29,6 +29,7 @@ def mock_azure_details():
         "client_id": "test-client-id",
         "client_secret": "test-secret",
         "tenant_id": "test-tenant",
+        "sas_token": "test-sas-token",
     }
 
 
@@ -93,7 +94,9 @@ class TestDataFactoryCreation:
 
         # Execute
         result = create_data_factory_if_not_exists(
-            mock_adf_client, "test-rg", "test-df"
+            mock_adf_client,
+            "test-rg",
+            "test-df",
         )
 
         # Assert
@@ -109,9 +112,12 @@ class TestDataFactoryCreation:
         mock_adf_client.factories.create_or_update.return_value = mock_factory
 
         # Execute
-        with patch('time.sleep') as mock_sleep:  # Don't actually sleep in tests
+        with patch("time.sleep") as mock_sleep:  # Don't actually sleep in tests
             result = create_data_factory_if_not_exists(
-                mock_adf_client, "test-rg", "test-df", "westus"
+                mock_adf_client,
+                "test-rg",
+                "test-df",
+                "westus",
             )
 
         # Assert
@@ -126,37 +132,18 @@ class TestLinkedServices:
 
     def test_create_blob_linked_service(self, mock_adf_client, mock_azure_details):
         """Test creation of blob storage linked service."""
-        # Setup
-        mock_credential = MagicMock()
-        mock_storage_client = MagicMock()
+        # Make sure mock_azure_details contains the sas_token
+        mock_azure_details["sas_token"] = "test-sas-token"  # noqa: S105
 
-        # Create a mock for the keys response
-        keys_response = MagicMock()
-        key_mock = MagicMock()
-        key_mock.value = "test-storage-key"
-        keys_response.keys = [key_mock]
-
-        # Configure the mock storage client
-        mock_storage_client.storage_accounts.list_keys.return_value = keys_response
-
-        # Use patch to replace the StorageManagementClient
-        with patch('scripts.adf_pipeline_creator.StorageManagementClient',
-                    return_value=mock_storage_client):
-
-            # Execute
-            create_blob_linked_service(
-                mock_adf_client,
-                mock_azure_details["resource_group"],
-                mock_azure_details["data_factory_name"],
-                mock_azure_details,
-                mock_credential
-            )
+        # Execute
+        create_blob_linked_service(
+            mock_adf_client,
+            mock_azure_details["resource_group"],
+            mock_azure_details["data_factory_name"],
+            mock_azure_details,
+        )
 
         # Assert
-        mock_storage_client.storage_accounts.list_keys.assert_called_once_with(
-            mock_azure_details["resource_group"],
-            mock_azure_details["storage_account"]
-        )
         mock_adf_client.linked_services.create_or_update.assert_called_once()
 
     def test_create_snowflake_linked_service(self, mock_adf_client, mock_snowflake_details):
@@ -166,7 +153,7 @@ class TestLinkedServices:
             mock_adf_client,
             "test-rg",
             "test-df",
-            mock_snowflake_details
+            mock_snowflake_details,
         )
 
         # Assert
@@ -185,7 +172,7 @@ class TestDatasets:
             mock_adf_client,
             mock_azure_details["resource_group"],
             mock_azure_details["data_factory_name"],
-            mock_azure_details
+            mock_azure_details,
         )
 
         # Assert
@@ -208,7 +195,7 @@ class TestPipeline:
         run_id = create_and_run_pipeline(
             mock_adf_client,
             "test-rg",
-            "test-df"
+            "test-df",
         )
 
         # Assert
@@ -220,19 +207,27 @@ class TestPipeline:
 class TestMainFunction:
     """Tests for the main function."""
 
-    @patch('scripts.adf_pipeline_creator.config')
-    @patch('scripts.adf_pipeline_creator.get_azure_credential')
-    @patch('scripts.adf_pipeline_creator.DataFactoryManagementClient')
-    @patch('scripts.adf_pipeline_creator.create_data_factory_if_not_exists')
-    @patch('scripts.adf_pipeline_creator.create_blob_linked_service')
-    @patch('scripts.adf_pipeline_creator.create_snowflake_linked_service')
-    @patch('scripts.adf_pipeline_creator.create_datasets')
-    @patch('scripts.adf_pipeline_creator.create_and_run_pipeline')
-    def test_main_function_orchestration(self, mock_create_pipeline, mock_create_datasets,
-                                        mock_create_snowflake, mock_create_blob,
-                                        mock_create_df, mock_adf_client_class,
-                                        mock_get_cred, mock_config,
-                                        mock_azure_details, mock_snowflake_details):
+    @patch("scripts.adf_pipeline_creator.config")
+    @patch("scripts.adf_pipeline_creator.get_azure_credential")
+    @patch("scripts.adf_pipeline_creator.DataFactoryManagementClient")
+    @patch("scripts.adf_pipeline_creator.create_data_factory_if_not_exists")
+    @patch("scripts.adf_pipeline_creator.create_blob_linked_service")
+    @patch("scripts.adf_pipeline_creator.create_snowflake_linked_service")
+    @patch("scripts.adf_pipeline_creator.create_datasets")
+    @patch("scripts.adf_pipeline_creator.create_and_run_pipeline")
+    def test_main_function_orchestration(
+        self,
+        mock_create_pipeline,
+        mock_create_datasets,
+        mock_create_snowflake,
+        mock_create_blob,
+        mock_create_df,
+        mock_adf_client_class,
+        mock_get_cred,
+        mock_config,
+        mock_azure_details,
+        mock_snowflake_details,
+    ):
         """Test that main function orchestrates all the steps correctly."""
         # Setup
         mock_config.get_azure_details.return_value = mock_azure_details
@@ -250,11 +245,14 @@ class TestMainFunction:
         mock_config.get_azure_details.assert_called_once()
         mock_config.get_snowflake_details.assert_called_once()
         mock_get_cred.assert_called_once()
-        mock_adf_client_class.assert_called_once_with(mock_credential, mock_azure_details["subscription_id"])
+        mock_adf_client_class.assert_called_once_with(
+            mock_credential,
+            mock_azure_details["subscription_id"],
+        )
         mock_create_df.assert_called_once_with(
             mock_adf_client,
             mock_azure_details["resource_group"],
-            mock_azure_details["data_factory_name"]
+            mock_azure_details["data_factory_name"],
         )
         mock_create_blob.assert_called_once()
         mock_create_snowflake.assert_called_once()

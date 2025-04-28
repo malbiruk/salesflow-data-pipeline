@@ -3,29 +3,16 @@
 import time
 
 from azure.core.exceptions import ResourceNotFoundError
-from azure.identity import ClientSecretCredential
 from azure.mgmt.datafactory import DataFactoryManagementClient
 from azure.mgmt.datafactory.models import (
-    ActivityPolicy,
-    AzureBlobStorageLinkedService,
     AzureBlobStorageLocation,
-    AzureBlobStorageReadSettings,
-    CopyActivity,
-    CopySink,
-    CopySource,
-    DatasetReference,
     DatasetResource,
     DelimitedTextDataset,
-    DelimitedTextReadSettings,
     Factory,
     LinkedServiceReference,
     LinkedServiceResource,
     PipelineResource,
-    SecureString,
-    SnowflakeDataset,
-    SnowflakeLinkedService,
 )
-from azure.mgmt.storage import StorageManagementClient
 
 from utils import config
 from utils.azure import get_azure_credential
@@ -33,7 +20,7 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-RAW_TABLE_NAME = "raw_sales_data"
+RAW_TABLE_NAME = "RAW_SALES_DATA"
 SCHEMA_RAW = "RAW"
 
 
@@ -65,22 +52,18 @@ def create_blob_linked_service(
     resource_group: str,
     factory_name: str,
     azure_details: dict[str, str],
-    credential: ClientSecretCredential,
 ) -> None:
     """Create and register an Azure Blob Storage linked service."""
     logger.info("Creating Azure Blob Storage linked service...")
 
-    storage_client = StorageManagementClient(credential, azure_details["subscription_id"])
-    keys = storage_client.storage_accounts.list_keys(
-        azure_details["resource_group"],
-        azure_details["storage_account"],
-    )
-    storage_key = keys.keys[0].value
-
+    # Use SAS authentication instead of connection string
     blob_linked_service = LinkedServiceResource(
-        properties=AzureBlobStorageLinkedService(
-            connection_string=f"DefaultEndpointsProtocol=https;AccountName={azure_details['storage_account']};AccountKey={storage_key};EndpointSuffix=core.windows.net",
-        ),
+        properties={
+            "type": "AzureBlobStorage",
+            "typeProperties": {
+                "sasUri": f"https://{azure_details['storage_account']}.blob.core.windows.net/?{azure_details['sas_token']}",
+            },
+        },
     )
 
     client.linked_services.create_or_update(
@@ -89,7 +72,7 @@ def create_blob_linked_service(
         "AzureBlobStorage",
         blob_linked_service,
     )
-    logger.info("Azure Blob Storage linked service created")
+    logger.info("Azure Blob Storage linked service with SAS created")
 
 
 def create_snowflake_linked_service(
@@ -98,16 +81,22 @@ def create_snowflake_linked_service(
     factory_name: str,
     snowflake_details: dict[str, str],
 ) -> None:
-    """Create and register a Snowflake linked service."""
-    logger.info("Creating Snowflake linked service...")
+    """Create and register a Snowflake V2 linked service."""
+    logger.info("Creating Snowflake V2 linked service...")
+
     snowflake_linked_service = LinkedServiceResource(
-        properties=SnowflakeLinkedService(
-            connection_string=f"jdbc:snowflake://{snowflake_details['account']}"
-            f".snowflakecomputing.com/?user={snowflake_details['user']}"
-            f"&warehouse={snowflake_details['warehouse']}"
-            f"&db={snowflake_details['database']}&schema={SCHEMA_RAW}",
-            password=SecureString(value=snowflake_details["password"]),
-        ),
+        properties={
+            "type": "SnowflakeV2",
+            "typeProperties": {
+                "accountIdentifier": snowflake_details["account"],
+                "warehouse": snowflake_details["warehouse"],
+                "database": snowflake_details["database"],
+                "schema": SCHEMA_RAW,
+                "authenticationType": "Basic",
+                "user": snowflake_details["user"],
+                "password": {"type": "SecureString", "value": snowflake_details["password"]},
+            },
+        },
     )
 
     client.linked_services.create_or_update(
@@ -116,7 +105,7 @@ def create_snowflake_linked_service(
         "SnowflakeDB",
         snowflake_linked_service,
     )
-    logger.info("Snowflake linked service created")
+    logger.info("Snowflake V2 linked service created")
 
 
 def create_datasets(
@@ -141,20 +130,16 @@ def create_datasets(
             ),
             column_delimiter=",",
             row_delimiter="\n",
-            first_row_as_header=True,
         ),
     )
 
     # Target dataset (Snowflake raw table)
     target_dataset = DatasetResource(
-        properties=SnowflakeDataset(
-            linked_service_name=LinkedServiceReference(
-                reference_name="SnowflakeDB",
-                type="LinkedServiceReference",
-            ),
-            schema=SCHEMA_RAW,
-            table=RAW_TABLE_NAME,
-        ),
+        properties={
+            "type": "SnowflakeV2Table",
+            "linkedServiceName": {"referenceName": "SnowflakeDB", "type": "LinkedServiceReference"},
+            "typeProperties": {"table": RAW_TABLE_NAME, "schema": SCHEMA_RAW},
+        },
     )
 
     # Register datasets
@@ -180,53 +165,53 @@ def create_and_run_pipeline(
     resource_group: str,
     factory_name: str,
 ) -> str:
-    """Create and run a pipeline to copy data from Blob Storage to Snowflake.
-
-    Args:
-        client: Data factory management client
-        resource_group: Resource group name
-        factory_name: Data factory name
-
-    Returns:
-        The pipeline run ID
-    """
+    """Create and run a pipeline to copy data from Blob Storage to Snowflake."""
     logger.info("Creating copy pipeline...")
     pipeline = PipelineResource(
         activities=[
-            CopyActivity(
-                name="CopyToRawTable",
-                type="Copy",
-                inputs=[DatasetReference(reference_name="SalesCSV", type="DatasetReference")],
-                outputs=[DatasetReference(reference_name="RawSalesTable", type="DatasetReference")],
-                source=CopySource(
-                    type="DelimitedTextSource",
-                    store_settings=AzureBlobStorageReadSettings(
-                        recursive=False,
-                        enable_partition_discovery=False,
-                    ),
-                    format_settings=DelimitedTextReadSettings(
-                        skip_line_count=0,
-                        first_row_as_header=True,
-                        delimiter=",",
-                    ),
-                ),
-                sink=CopySink(type="SnowflakeSink", write_behavior="Insert"),
-                enable_staging=False,
-                policy=ActivityPolicy(),
-                column_mappings={
-                    "Region": "region",
-                    "Country": "country",
-                    "Item Type": "item_type",
-                    "Sales Channel": "sales_channel",
-                    "Order Priority": "order_priority",
-                    "Order Date": "order_date",
-                    "Order ID": "order_id",
-                    "Ship Date": "ship_date",
-                    "Units Sold": "units_sold",
-                    "Unit Price": "unit_price",
-                    "Unit Cost": "unit_cost",
+            {
+                "name": "CopyToSnowflake",
+                "type": "Copy",
+                "inputs": [{"referenceName": "SalesCSV", "type": "DatasetReference"}],
+                "outputs": [{"referenceName": "RawSalesTable", "type": "DatasetReference"}],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "AzureBlobStorageReadSettings",
+                            "enablePartitionDiscovery": False,
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextReadSettings",
+                            "skipLineCount": 0,
+                        },
+                    },
+                    "sink": {
+                        "type": "SnowflakeV2Sink",
+                        "importSettings": {
+                            "type": "SnowflakeImportCopyCommand",
+                            "additionalCopyOptions": {"ON_ERROR": "CONTINUE"},
+                        },
+                    },
+                    "enableStaging": False,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "mappings": [
+                            {"source": {"name": "Prop_0"}, "sink": {"name": "REGION"}},
+                            {"source": {"name": "Prop_1"}, "sink": {"name": "COUNTRY"}},
+                            {"source": {"name": "Prop_2"}, "sink": {"name": "ITEM_TYPE"}},
+                            {"source": {"name": "Prop_3"}, "sink": {"name": "SALES_CHANNEL"}},
+                            {"source": {"name": "Prop_4"}, "sink": {"name": "ORDER_PRIORITY"}},
+                            {"source": {"name": "Prop_5"}, "sink": {"name": "ORDER_DATE"}},
+                            {"source": {"name": "Prop_6"}, "sink": {"name": "ORDER_ID"}},
+                            {"source": {"name": "Prop_7"}, "sink": {"name": "SHIP_DATE"}},
+                            {"source": {"name": "Prop_8"}, "sink": {"name": "UNITS_SOLD"}},
+                            {"source": {"name": "Prop_9"}, "sink": {"name": "UNIT_PRICE"}},
+                            {"source": {"name": "Prop_10"}, "sink": {"name": "UNIT_COST"}},
+                        ],
+                    },
                 },
-            ),
+            },
         ],
     )
 
@@ -270,7 +255,7 @@ def main() -> None:
     create_data_factory_if_not_exists(adf_client, resource_group, factory_name)
 
     # Create linked services
-    create_blob_linked_service(adf_client, resource_group, factory_name, azure_details, credential)
+    create_blob_linked_service(adf_client, resource_group, factory_name, azure_details)
     create_snowflake_linked_service(adf_client, resource_group, factory_name, snowflake_details)
 
     # Create datasets

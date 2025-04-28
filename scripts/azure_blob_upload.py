@@ -8,14 +8,21 @@ and container inside it
 4. uploads the .csv in blob into the created container
 """
 
+import os
 import zipfile
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import requests
 from azure.identity import ClientSecretCredential
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.storage import StorageManagementClient
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import (
+    AccountSasPermissions,
+    BlobServiceClient,
+    ResourceTypes,
+    generate_account_sas,
+)
 
 from utils import config
 from utils.azure import get_azure_credential
@@ -26,9 +33,26 @@ logger = get_logger()
 FILE_NAME = "10000 Sales Records.csv"
 
 
+def generate_sas_token(storage_account: str, storage_key: str) -> str:
+    """Generate a SAS token for the entire storage account."""
+    logger.info("Generating SAS token for storage account %s...", storage_account)
+
+    # Generate a SAS token for the entire account (not just one container)
+    sas_token = generate_account_sas(
+        account_name=storage_account,
+        account_key=storage_key,
+        resource_types=ResourceTypes(service=True, container=True, object=True),
+        permission=AccountSasPermissions(read=True, write=True, list=True),
+        expiry=datetime.now(tz=UTC) + timedelta(days=10),
+    )
+
+    logger.info("SAS token generated successfully")
+    return sas_token
+
+
 def download_dataset() -> None:
     """Download and extract the sales dataset."""
-    if Path(FILE_NAME).exists():
+    if Path(f"data/{FILE_NAME}").exists():
         logger.info("Dataset was already downloaded.")
         return
 
@@ -64,6 +88,29 @@ def download_dataset() -> None:
     logger.info("Dataset downloaded and extracted.")
 
 
+def add_sas_token_to_dotenv(sas_token: str) -> None:
+    env_path = Path(".env")
+
+    env_content = ""
+    if env_path.exists():
+        env_content = env_path.read_text()
+
+    if "AZURE_SAS_TOKEN=" in env_content:
+        lines = env_content.splitlines()
+        updated_lines = []
+        for line in lines:
+            if line.startswith("AZURE_SAS_TOKEN="):
+                updated_lines.append(f'AZURE_SAS_TOKEN="{sas_token}"')
+            else:
+                updated_lines.append(line)
+        env_path.write_text("\n".join(updated_lines))
+    else:
+        with env_path.open("a") as f:
+            if env_content and not env_content.endswith("\n"):
+                f.write("\n")
+            f.write(f'AZURE_SAS_TOKEN="{sas_token}"\n')
+
+
 def create_azure_resources(credential: ClientSecretCredential) -> BlobServiceClient:
     """Create necessary Azure resources if they don't exist."""
     logger.info("Creating Azure resources...")
@@ -93,6 +140,10 @@ def create_azure_resources(credential: ClientSecretCredential) -> BlobServiceCli
 
     keys = storage_client.storage_accounts.list_keys(resource_group, storage_account)
     storage_key = keys.keys[0].value
+    sas_token = generate_sas_token(storage_account, storage_key)
+    add_sas_token_to_dotenv(sas_token)
+    os.environ["AZURE_SAS_TOKEN"] = sas_token
+
     blob_service_client = BlobServiceClient(
         account_url=f"https://{storage_account}.blob.core.windows.net",
         credential=storage_key,
@@ -118,8 +169,11 @@ def upload_to_blob(blob_service_client: BlobServiceClient) -> None:
 
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
-    with (data_dir / FILE_NAME).open("rb") as f:
-        blob_client.upload_blob(f, overwrite=True)
+    with (data_dir / FILE_NAME).open("r", encoding="utf-8") as input_file:
+        next(input_file)  # skipping header line for simplicity of loading into Snowflake later
+
+        content = input_file.read()
+        blob_client.upload_blob(content, overwrite=True)
 
     logger.info(
         "File '%s' uploaded to '%s' in container '%s'",

@@ -27,6 +27,7 @@ def get_azure_details() -> dict[str, str]:
         "storage_account": get_required_env("AZURE_STORAGE_ACCOUNT"),
         "container_name": get_required_env("AZURE_CONTAINER_NAME"),
         "blob_name": get_required_env("AZURE_BLOB_NAME"),
+        "sas_token": os.getenv("AZURE_SAS_TOKEN"),
     }
 
 
