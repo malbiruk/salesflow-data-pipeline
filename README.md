@@ -9,9 +9,9 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 ## 🗂️ Stack Overview
 
 - **Azure Blob Storage** — stores raw CSV data
-- **Azure Data Factory** — orchestrates ETL workflows
+- **Azure Data Factory** — loads data from Blob to Snowflake
 - **Snowflake** — cloud data warehouse for structured data
-- **dbt** — creates final tables with metrics suitable for analysis
+- **dbt** — transforms initial table from raw schema to normalized schema tables, and normalized to analytics schema tables
 - **Streamlit + Plotly** — interactive dashboard for visual insights
 - **Python** — data transformation, scripting, dashboard backend
 
@@ -60,7 +60,8 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 - [x] Repo initialized
 - [x] Sample data upload
 - [x] Snowflake schema
-- [ ] ADF pipeline setup
+- [x] ADF pipeline setup
+- [ ] dbt transformations
 - [ ] Dashboard MVP
 
 ---
