@@ -5,3 +5,10 @@ __pycache__
 *.egg-info
 uv.lock
 .pytest_cache
+logs
+
+# dbt
+target
+dbt_packages
+logs
+package-lock.yml

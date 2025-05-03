@@ -11,8 +11,6 @@ logger = get_logger()
 load_dotenv()
 
 SCHEMA_RAW = "RAW"
-SCHEMA_NORMALIZED = "NORMALIZED"
-SCHEMA_ANALYTICS = "ANALYTICS"
 
 
 def execute_sql_statements(
@@ -39,9 +37,8 @@ def main() -> None:
     cursor.execute(f"CREATE DATABASE IF NOT EXISTS {database}")
     cursor.execute(f"USE DATABASE {database}")
 
-    # Create all schemas
-    for schema_name in [SCHEMA_RAW, SCHEMA_NORMALIZED, SCHEMA_ANALYTICS]:
-        cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
+    # Create the raw schema
+    cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA_RAW}")
 
     # Set up raw schema with a single table
     cursor.execute(f"USE SCHEMA {SCHEMA_RAW}")
@@ -49,14 +46,7 @@ def main() -> None:
         raw_sql = sql_file.read()
         execute_sql_statements(cursor, raw_sql)
 
-    # Set up normalized schema
-    cursor.execute(f"USE SCHEMA {SCHEMA_NORMALIZED}")
-    with Path("db_schema/normalized_schema.sql").open() as sql_file:
-        normalized_sql = sql_file.read()
-        execute_sql_statements(cursor, normalized_sql)
-
-    # Set up analytics schema
-    cursor.execute(f"USE SCHEMA {SCHEMA_ANALYTICS}")
+    # Normalized and analytics schema will be created by dbt later
 
     cursor.close()
     conn.close()

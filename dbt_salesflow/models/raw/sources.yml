@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: raw
+    database: sales_db
+    schema: raw
+    tables:
+      - name: raw_sales_data

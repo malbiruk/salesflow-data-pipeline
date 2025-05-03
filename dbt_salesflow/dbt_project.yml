@@ -1,0 +1,26 @@
+name: "dbt_salesflow"
+version: "1.0.0"
+profile: "dbt_salesflow"
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  dbt_salesflow:
+    raw:
+      +schema: raw
+      +materialized: table
+    normalized:
+      +schema: normalized
+      +materialized: table
+    analytics:
+      +schema: analytics
+      +materialized: view
