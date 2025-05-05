@@ -1,100 +1,132 @@
-version: 2
-
 models:
   - name: region
     config:
       contract:
         enforced: true
+    tests:
+      - not_empty_table
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - region
     columns:
       - name: region
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: primary_key
+        tests:
+          - not_null
+          - unique
 
   - name: country
     config:
       contract:
         enforced: true
+    tests:
+      - not_empty_table
     columns:
       - name: country
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: primary_key
+        tests:
+          - not_null
+          - unique
       - name: region
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: foreign_key
-            to: ref('region')
-            to_columns: [region]
+        tests:
+          - not_null
+          - relationships:
+              to: ref('region')
+              field: region
 
   - name: product
     config:
       contract:
         enforced: true
+    tests:
+      - not_empty_table
     columns:
       - name: item_type
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: primary_key
+        tests:
+          - not_null
+          - unique
       - name: unit_cost
         data_type: float
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
       - name: unit_price
         data_type: float
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
 
   - name: order_priority
     config:
       contract:
         enforced: true
+    tests:
+      - not_empty_table
     columns:
       - name: order_priority
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: primary_key
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values: ["H", "M", "L", "C"]
 
   - name: orders
     config:
       contract:
         enforced: true
+    tests:
+      - not_empty_table
     columns:
       - name: id
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: primary_key
+        tests:
+          - not_null
+          - unique
       - name: source_order_id
         data_type: integer
-        description: "Original order ID from source system"
+        tests:
+          - not_null
       - name: country
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: foreign_key
-            to: ref('country')
-            to_columns: [country]
+        tests:
+          - not_null
+          - relationships:
+              to: ref('country')
+              field: country
       - name: is_online
         data_type: boolean
+        tests:
+          - not_null
       - name: order_priority
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: foreign_key
-            to: ref('order_priority')
-            to_columns: [order_priority]
+        tests:
+          - not_null
+          - relationships:
+              to: ref('order_priority')
+              field: order_priority
       - name: product_id
         data_type: varchar(255)
-        constraints:
-          - type: not_null
-          - type: foreign_key
-            to: ref('product')
-            to_columns: [item_type]
+        tests:
+          - not_null
+          - relationships:
+              to: ref('product')
+              field: item_type
       - name: units_sold
         data_type: integer
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
       - name: order_date
         data_type: date
+        tests:
+          - not_null
       - name: ship_date
         data_type: date
+        tests:
+          - not_null

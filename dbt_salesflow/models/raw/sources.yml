@@ -6,3 +6,24 @@ sources:
     schema: raw
     tables:
       - name: raw_sales_data
+        description: "Raw sales data from external source"
+        tests:
+          - not_empty_table
+        columns:
+          - name: order_id
+            tests:
+              - not_null
+          - name: region
+            tests:
+              - not_null
+          - name: country
+            tests:
+              - not_null
+          - name: item_type
+            tests:
+              - not_null
+          - name: units_sold
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
