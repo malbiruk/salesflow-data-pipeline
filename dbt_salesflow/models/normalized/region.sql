@@ -1,12 +1,3 @@
-{{ config(
-    column_types = {
-        'region': 'VARCHAR(255)'
-    },
-    post_hook=[
-        "{{ add_pk_constraint(this, 'region') }}"
-    ]
-) }}
-
 select distinct
     region
 from

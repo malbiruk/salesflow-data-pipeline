@@ -2,62 +2,99 @@ version: 2
 
 models:
   - name: region
+    config:
+      contract:
+        enforced: true
     columns:
       - name: region
-        tests:
-          - unique
-          - not_null
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: primary_key
 
   - name: country
+    config:
+      contract:
+        enforced: true
     columns:
       - name: country
-        tests:
-          - unique
-          - not_null
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: primary_key
       - name: region
-        tests:
-          - not_null
-          - relationships:
-              to: ref('region')
-              field: region
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            to: ref('region')
+            to_columns: [region]
 
   - name: product
+    config:
+      contract:
+        enforced: true
     columns:
       - name: item_type
-        tests:
-          - unique
-          - not_null
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: primary_key
+      - name: unit_cost
+        data_type: float
+      - name: unit_price
+        data_type: float
 
   - name: order_priority
+    config:
+      contract:
+        enforced: true
     columns:
       - name: order_priority
-        tests:
-          - unique
-          - not_null
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: primary_key
 
   - name: orders
+    config:
+      contract:
+        enforced: true
     columns:
       - name: id
-        tests:
-          - unique
-          - not_null
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: primary_key
       - name: source_order_id
+        data_type: integer
         description: "Original order ID from source system"
       - name: country
-        tests:
-          - not_null
-          - relationships:
-              to: ref('country')
-              field: country
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            to: ref('country')
+            to_columns: [country]
+      - name: is_online
+        data_type: boolean
       - name: order_priority
-        tests:
-          - not_null
-          - relationships:
-              to: ref('order_priority')
-              field: order_priority
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            to: ref('order_priority')
+            to_columns: [order_priority]
       - name: product_id
-        tests:
-          - not_null
-          - relationships:
-              to: ref('product')
-              field: item_type
+        data_type: varchar(255)
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            to: ref('product')
+            to_columns: [item_type]
+      - name: units_sold
+        data_type: integer
+      - name: order_date
+        data_type: date
+      - name: ship_date
+        data_type: date

@@ -57,8 +57,9 @@ ignore = [
     "PLR0913", # Too many arguments to function call
     "TRY003",  # Avoid specifying long messages outside the exception class
     "EM101",   # Exception must not use a string literal, assign to variable first
-    "EM102",   # Exception must not use an f-string literal, assign to variable first
+    "EM102",   # Exception must not use a f-string literal, assign to variable first
     "BLE001",  # Do not catch blind exception: `Exception`
+    "S603",    # This rule is prone to errors
 ]
 select = ["ALL"]
 fixable = ["ALL"]
