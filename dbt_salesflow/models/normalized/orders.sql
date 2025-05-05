@@ -1,4 +1,15 @@
 {{ config(
+    column_types = {
+        'id': 'VARCHAR(255)',
+        'source_order_id': 'INTEGER',
+        'country': 'VARCHAR(255)',
+        'is_online': 'BOOLEAN',
+        'order_priority': 'VARCHAR(255)',
+        'product_id': 'VARCHAR(255)',
+        'units_sold': 'INTEGER',
+        'order_date': 'DATE',
+        'ship_date': 'DATE'
+    },
     post_hook=[
         "{{ add_pk_constraint(this, 'id') }}",
         "{{ add_fk_constraint(this, 'country', ref('country'), 'country') }}",
