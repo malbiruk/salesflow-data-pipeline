@@ -13,12 +13,13 @@ CREATE TABLE IF NOT EXISTS product (
 
 CREATE TABLE IF NOT EXISTS order_priority (order_priority VARCHAR(255) PRIMARY KEY);
 
-CREATE TABLE IF NOT EXISTS "order" (
-    id INTEGER,
+CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(255) PRIMARY KEY,
+    source_order_id INTEGER,
     country VARCHAR(255) NOT NULL,
     is_online BOOLEAN,
     order_priority VARCHAR(255) NOT NULL,
-    product_id VARCHAR(255),
+    product_id VARCHAR(255) NOT NULL,
     units_sold INTEGER,
     order_date DATE,
     ship_date DATE
@@ -26,8 +27,8 @@ CREATE TABLE IF NOT EXISTS "order" (
 
 ALTER TABLE country ADD FOREIGN KEY (region) REFERENCES region (region);
 
-ALTER TABLE "order" ADD FOREIGN KEY (country) REFERENCES country (country);
+ALTER TABLE orders ADD FOREIGN KEY (country) REFERENCES country (country);
 
-ALTER TABLE "order" ADD FOREIGN KEY (order_priority) REFERENCES order_priority (order_priority);
+ALTER TABLE orders ADD FOREIGN KEY (order_priority) REFERENCES order_priority (order_priority);
 
-ALTER TABLE "order" ADD FOREIGN KEY (product_id) REFERENCES product (item_type);
+ALTER TABLE orders ADD FOREIGN KEY (product_id) REFERENCES product (item_type);

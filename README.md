@@ -32,7 +32,7 @@ It simulates a full pipeline from raw CSV to business-ready analytics — a prac
 ## 📐 Schema
 
 **normalized**
-[![ERD schema](db_schema/ERD.png)](https://liambx.com/erd/p/github.com/malbiruk/salesflow-data-pipeline/blob/main/db_schema/schema.sql?showMode=ALL_FIELDS)
+[![ERD schema](db_schema/ERD.png)](https://liambx.com/erd/p/github.com/malbiruk/salesflow-data-pipeline/blob/main/db_schema/normalized_schema.sql?showMode=ALL_FIELDS)
 
 ---
 

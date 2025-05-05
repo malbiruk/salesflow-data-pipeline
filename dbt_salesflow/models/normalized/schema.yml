@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: region
+    columns:
+      - name: region
+        tests:
+          - unique
+          - not_null
+
+  - name: country
+    columns:
+      - name: country
+        tests:
+          - unique
+          - not_null
+      - name: region
+        tests:
+          - not_null
+          - relationships:
+              to: ref('region')
+              field: region
+
+  - name: product
+    columns:
+      - name: item_type
+        tests:
+          - unique
+          - not_null
+
+  - name: order_priority
+    columns:
+      - name: order_priority
+        tests:
+          - unique
+          - not_null
+
+  - name: orders
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: source_order_id
+        description: "Original order ID from source system"
+      - name: country
+        tests:
+          - not_null
+          - relationships:
+              to: ref('country')
+              field: country
+      - name: order_priority
+        tests:
+          - not_null
+          - relationships:
+              to: ref('order_priority')
+              field: order_priority
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('product')
+              field: item_type

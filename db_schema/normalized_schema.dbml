@@ -20,8 +20,9 @@ Table order_priority {
   order_priority varchar [pk]
 }
 
-Table order {
-  id integer
+Table orders {
+  id varchar [pk]
+  source_order_id integer
   country varchar [ref: > country.country, not null]
   is_online bool
   order_priority varchar [ref: > order_priority.order_priority, not null]

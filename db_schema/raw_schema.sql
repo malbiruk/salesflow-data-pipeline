@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS raw_sales_data (
     sales_channel VARCHAR(255),
     order_priority VARCHAR(255),
     order_date DATE,
-    order_id VARCHAR(255) PRIMARY KEY,
+    order_id VARCHAR(255),
     ship_date DATE,
     units_sold INTEGER,
     unit_price DECIMAL(10, 2),
