@@ -1,5 +1,3 @@
-# tests/test_adf_pipeline_creator.py
-
 from unittest.mock import MagicMock, patch
 
 import pytest
